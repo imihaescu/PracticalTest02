@@ -15,16 +15,16 @@ public class ClientThread extends Thread {
 
     private String address;
     private int port;
-    private String city;
+    private String url;
     private String informationType;
     private TextView weatherForecastTextView;
 
     private Socket socket;
 
-    public ClientThread(String address, int port, String city, String informationType, TextView weatherForecastTextView) {
+    public ClientThread(String address, int port, String url, String informationType, TextView weatherForecastTextView) {
         this.address = address;
         this.port = port;
-        this.city = city;
+        this.url = url;
         this.informationType = informationType;
         this.weatherForecastTextView = weatherForecastTextView;
     }
@@ -43,20 +43,22 @@ public class ClientThread extends Thread {
                 Log.e(Constants.TAG, "[CLIENT THREAD] Buffered Reader / Print Writer are null!");
                 return;
             }
-            printWriter.println(city);
+            printWriter.println(url);
             printWriter.flush();
-            printWriter.println(informationType);
-            printWriter.flush();
-            String weatherInformation;
-            while ((weatherInformation = bufferedReader.readLine()) != null) {
-                final String finalizedWeateherInformation = weatherInformation;
-                weatherForecastTextView.post(new Runnable() {
-                   @Override
-                    public void run() {
-                       weatherForecastTextView.setText(finalizedWeateherInformation);
-                   }
-                });
+            String line = null;
+            final StringBuilder body = new StringBuilder();
+
+            while ((line = bufferedReader.readLine())!= null) {
+                body.append(line);
             }
+//            final String body = bufferedReader.readLine();
+            weatherForecastTextView.post(new Runnable() {
+                @Override
+                public void run() {
+                    weatherForecastTextView.setText(body.toString());
+                }
+            });
+            weatherForecastTextView.setText(body);
         } catch (IOException ioException) {
             Log.e(Constants.TAG, "[CLIENT THREAD] An exception has occurred: " + ioException.getMessage());
             if (Constants.DEBUG) {
